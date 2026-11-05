@@ -3,59 +3,302 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>BrewCart - Demo Store</title>
+  <title>BrewCart - Specialty Coffee Store</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <div class="promo-bar">Free shipping over $50 &middot; Code <strong>BREW10</strong> = 10% off &middot; <a href="#/support">Need help?</a></div>
+
   <header class="site-header">
-    <div class="brand" id="brand">☕ BrewCart</div>
-    <nav>
-      <a href="#products" class="nav-link">Shop</a>
-      <a href="#" id="open-cart" class="nav-link cart-link">Cart (<span id="cart-count">0</span>)</a>
+    <a class="brand" id="brand" href="#/">☕ BrewCart</a>
+    <nav class="main-nav" aria-label="Main">
+      <a href="#/" id="nav-shop" class="nav-link">Shop</a>
+      <a href="#/compare" id="nav-compare" class="nav-link">Compare <span class="pill" id="compare-count">0</span></a>
+      <a href="#/support" id="nav-support" class="nav-link">Support</a>
     </nav>
+    <div class="search-wrap">
+      <input type="search" id="search-input" placeholder="Search coffee, gear, mugs..." aria-label="Search products" autocomplete="off" />
+    </div>
+    <div class="header-actions">
+      <a class="icon-btn" id="nav-account" href="#/login">👤 <span id="account-label">Sign in</span></a>
+      <a class="icon-btn" id="wishlist-btn" href="#/wishlist" aria-label="Wishlist">♡ <span class="pill" id="wishlist-count">0</span></a>
+      <button class="icon-btn" id="open-cart" aria-label="Open cart">🛒 Cart <span class="pill" id="cart-count">0</span></button>
+    </div>
   </header>
 
-  <section class="hero">
-    <h1>Fresh coffee, delivered fast.</h1>
-    <p>A demo store built for the testing webinar. Add items, checkout, repeat.</p>
-    <span class="version-badge" id="version-badge"></span>
-  </section>
+  <!-- ===================== HOME / SHOP ===================== -->
+  <div id="view-home" class="view">
+    <section class="hero">
+      <div class="hero-text">
+        <h1>Small-batch coffee, brewed better.</h1>
+        <p>Single-origin beans, brewing gear and mugs from roasters you will love.</p>
+        <a class="btn primary" id="shop-now" href="#shop">Shop now</a>
+      </div>
+      <span class="version-badge" id="version-badge"></span>
+    </section>
+    <main id="shop">
+      <div class="toolbar">
+        <div class="chips" id="category-chips" role="tablist" aria-label="Categories"></div>
+        <label class="sort-label">Sort by
+          <select id="sort-select">
+            <option value="featured">Featured</option>
+            <option value="price-asc">Price: low to high</option>
+            <option value="price-desc">Price: high to low</option>
+            <option value="rating">Top rated</option>
+          </select>
+        </label>
+      </div>
+      <p class="result-count" id="result-count" aria-live="polite"></p>
+      <section id="products" class="grid" aria-label="Products"></section>
+      <p class="empty hidden" id="empty-state">No products match your search. Try another keyword.</p>
+    </main>
+    <section class="newsletter">
+      <h2>Get 10% off your first order</h2>
+      <form id="newsletter-form" novalidate>
+        <input type="email" id="newsletter-email" placeholder="you@example.com" aria-label="Newsletter email" autocomplete="email" />
+        <button type="submit" class="btn primary" id="newsletter-submit">Subscribe</button>
+      </form>
+      <p class="promo-msg" id="newsletter-msg" role="status"></p>
+    </section>
+  </div>
 
-  <main>
-    <section id="products" class="grid" aria-label="Products"></section>
-  </main>
-
-  <aside id="cart-panel" class="cart-panel hidden" aria-label="Shopping cart">
-    <h2>Your Cart</h2>
-    <ul id="cart-items"></ul>
-    <p class="total">Total: $<span id="cart-total">0.00</span></p>
-    <div class="cart-actions">
-      <button id="close-cart" class="btn secondary">Keep shopping</button>
-      <button id="checkout-btn" class="btn primary">Checkout</button>
+  <!-- ===================== PRODUCT DETAIL ===================== -->
+  <div id="view-product" class="view hidden">
+    <div class="page-section wide">
+      <a href="#/" class="back-link">← Back to shop</a>
+      <div class="pd-grid">
+        <div class="pd-emoji" id="pd-emoji"></div>
+        <div>
+          <h1 id="pd-title">Product</h1>
+          <p class="rating" id="pd-rating"></p>
+          <p class="price big" id="pd-price"></p>
+          <p id="pd-desc" class="muted"></p>
+          <p class="stock" id="pd-stock"></p>
+          <div class="qty-row left">
+            <button class="qty-btn" id="pd-minus" aria-label="Decrease quantity">−</button>
+            <span id="pd-qty">1</span>
+            <button class="qty-btn" id="pd-plus" aria-label="Increase quantity">+</button>
+          </div>
+          <div class="pd-actions">
+            <button class="btn primary" id="pd-add">Add to cart</button>
+            <button class="btn secondary" id="pd-wish">♡ Wishlist</button>
+            <button class="btn secondary" id="pd-compare">Compare</button>
+          </div>
+        </div>
+      </div>
+      <h2>Customer reviews</h2>
+      <ul id="review-list" class="review-list"></ul>
+      <p class="muted" id="review-empty">No reviews yet. Be the first!</p>
+      <form id="review-form" class="review-form" novalidate>
+        <h3>Write a review</h3>
+        <label>Rating
+          <select id="review-rating">
+            <option value="5">5 - Excellent</option>
+            <option value="4">4 - Good</option>
+            <option value="3">3 - Okay</option>
+            <option value="2">2 - Poor</option>
+            <option value="1">1 - Terrible</option>
+          </select>
+        </label>
+        <label>Your review <textarea id="review-text" rows="3" placeholder="What did you think?"></textarea></label>
+        <p class="error" id="review-error" role="alert"></p>
+        <button type="submit" class="btn primary" id="review-submit">Submit review</button>
+      </form>
     </div>
+  </div>
+
+  <!-- ===================== COMPARE ===================== -->
+  <div id="view-compare" class="view hidden">
+    <div class="page-section wide">
+      <h1>Compare products</h1>
+      <p class="muted" id="compare-empty">Pick up to 3 products with the Compare button to see them side by side.</p>
+      <div class="table-wrap"><table class="compare-table hidden" id="compare-table"></table></div>
+      <button class="btn secondary hidden" id="compare-clear">Clear comparison</button>
+    </div>
+  </div>
+
+  <!-- ===================== WISHLIST ===================== -->
+  <div id="view-wishlist" class="view hidden">
+    <div class="page-section wide">
+      <h1>Your wishlist</h1>
+      <p class="muted" id="wishlist-empty">Nothing saved yet. Tap ♡ on any product.</p>
+      <ul id="wishlist-list" class="cart-list"></ul>
+    </div>
+  </div>
+
+  <!-- ===================== LOGIN / SIGNUP ===================== -->
+  <div id="view-login" class="view hidden">
+    <div class="page-section">
+      <div class="tabs" role="tablist">
+        <button class="tab active" id="tab-login" role="tab">Log in</button>
+        <button class="tab" id="tab-signup" role="tab">Sign up</button>
+      </div>
+      <form id="login-form" novalidate>
+        <label>Email <input type="email" id="login-email" placeholder="jane@example.com" autocomplete="email" /></label>
+        <label>Password <input type="password" id="login-password" placeholder="Your password" autocomplete="current-password" /></label>
+        <p class="error" id="login-error" role="alert"></p>
+        <button type="submit" class="btn primary block" id="login-submit">Log in</button>
+      </form>
+      <form id="signup-form" class="hidden" novalidate>
+        <label>Full name <input type="text" id="signup-name" placeholder="Jane Doe" autocomplete="name" /></label>
+        <label>Email <input type="email" id="signup-email" placeholder="jane@example.com" autocomplete="email" /></label>
+        <label>Password (min 8 characters) <input type="password" id="signup-password" placeholder="Choose a password" autocomplete="new-password" /></label>
+        <label>Confirm password <input type="password" id="signup-confirm" placeholder="Repeat password" autocomplete="new-password" /></label>
+        <label class="check"><input type="checkbox" id="signup-terms" /> I agree to the terms</label>
+        <p class="error" id="signup-error" role="alert"></p>
+        <button type="submit" class="btn primary block" id="signup-submit">Create account</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================== ACCOUNT ===================== -->
+  <div id="view-account" class="view hidden">
+    <div class="page-section wide">
+      <div class="account-head">
+        <div>
+          <h1 id="account-title">My account</h1>
+          <p class="muted" id="account-email"></p>
+        </div>
+        <button class="btn secondary" id="logout-btn">Log out</button>
+      </div>
+      <h2>Order history</h2>
+      <p class="muted" id="orders-empty">No orders yet.</p>
+      <table class="orders-table hidden" id="orders-table">
+        <thead><tr><th>Order</th><th>Date</th><th>Items</th><th>Total</th><th>Status</th></tr></thead>
+        <tbody id="orders-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===================== SUPPORT ===================== -->
+  <div id="view-support" class="view hidden">
+    <div class="page-section wide">
+      <h1>Support</h1>
+      <h2>Frequently asked questions</h2>
+      <div class="faq" id="faq"></div>
+      <h2>Contact us</h2>
+      <form id="contact-form" novalidate>
+        <label>Your name <input type="text" id="contact-name" placeholder="Jane Doe" autocomplete="name" /></label>
+        <label>Email <input type="email" id="contact-email" placeholder="jane@example.com" autocomplete="email" /></label>
+        <label>Topic
+          <select id="contact-topic">
+            <option value="">Choose a topic</option>
+            <option value="order">Order issue</option>
+            <option value="product">Product question</option>
+            <option value="other">Something else</option>
+          </select>
+        </label>
+        <label>Message <textarea id="contact-message" rows="4" placeholder="How can we help?"></textarea></label>
+        <p class="error" id="contact-error" role="alert"></p>
+        <button type="submit" class="btn primary" id="contact-submit">Send message</button>
+      </form>
+      <p class="success hidden" id="contact-success" role="status"></p>
+    </div>
+  </div>
+
+  <!-- ===================== CHECKOUT ===================== -->
+  <div id="view-checkout" class="view hidden">
+    <section id="checkout" class="page-section" aria-label="Checkout">
+      <h2>Checkout</h2>
+      <ol class="steps" id="steps">
+        <li class="step active" id="step-1">1. Shipping</li>
+        <li class="step" id="step-2">2. Payment</li>
+        <li class="step" id="step-3">3. Review</li>
+      </ol>
+      <form id="checkout-form" novalidate>
+        <div class="step-panel" id="panel-1">
+          <label>Full name <input type="text" id="full-name" name="fullName" placeholder="Jane Doe" autocomplete="name" /></label>
+          <label>Email <input type="email" id="email" name="email" placeholder="jane@example.com" autocomplete="email" /></label>
+          <label>Address <input type="text" id="address" name="address" placeholder="221B Baker Street" autocomplete="street-address" /></label>
+          <label>City <input type="text" id="city" name="city" placeholder="London" autocomplete="address-level2" /></label>
+          <label>Shipping method
+            <select id="ship-method">
+              <option value="standard">Standard (3-5 days)</option>
+              <option value="express">Express (1-2 days) +$9.00</option>
+            </select>
+          </label>
+        </div>
+        <div class="step-panel hidden" id="panel-2">
+          <label>Name on card <input type="text" id="card-name" name="cardName" placeholder="Jane Doe" autocomplete="cc-name" /></label>
+          <label>Card number <input type="text" id="card" name="card" placeholder="4111 1111 1111 1111" autocomplete="cc-number" /></label>
+          <div class="two-col">
+            <label>Expiry <input type="text" id="expiry" name="expiry" placeholder="MM/YY" autocomplete="cc-exp" /></label>
+            <label>CVV <input type="text" id="cvv" name="cvv" placeholder="123" autocomplete="cc-csc" /></label>
+          </div>
+        </div>
+        <div class="step-panel hidden" id="panel-3">
+          <h3>Review your order</h3>
+          <ul id="review-items" class="cart-list"></ul>
+          <p id="review-ship"></p>
+          <p class="grand-line">Total: $<span id="review-total">0.00</span></p>
+          <label class="check"><input type="checkbox" id="terms" /> I agree to the terms and conditions</label>
+        </div>
+        <p class="error" id="form-error" role="alert"></p>
+        <div class="form-actions">
+          <button type="button" class="btn secondary" id="back-btn">Back</button>
+          <button type="button" class="btn primary" id="next-btn">Continue</button>
+          <button type="submit" class="btn primary hidden" id="place-order">Place order</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <!-- ===================== CONFIRMATION ===================== -->
+  <div id="view-confirmation" class="view hidden">
+    <section id="confirmation" class="page-section center" aria-label="Order confirmation">
+      <div class="check-big">✅</div>
+      <h2 id="confirm-title">Thank you for your order!</h2>
+      <p>Order number: <strong id="order-id"></strong></p>
+      <p id="confirm-summary"></p>
+      <button id="new-order" class="btn secondary">Continue shopping</button>
+      <a class="btn primary" id="view-orders" href="#/account">View my orders</a>
+    </section>
+  </div>
+
+  <div class="overlay hidden" id="overlay"></div>
+
+  <aside id="cart-panel" class="drawer hidden" aria-label="Shopping cart">
+    <div class="drawer-head">
+      <h2>Your cart</h2>
+      <button class="icon-btn" id="close-cart" aria-label="Close cart">✕</button>
+    </div>
+    <p class="muted" id="cart-empty">Your cart is empty. Add something tasty!</p>
+    <ul id="cart-items" class="cart-list"></ul>
+    <div class="promo-row">
+      <input type="text" id="promo-input" placeholder="Promo code" aria-label="Promo code" autocomplete="off" />
+      <button class="btn secondary" id="apply-promo">Apply</button>
+    </div>
+    <p class="promo-msg" id="promo-msg" role="status"></p>
+    <dl class="totals">
+      <div><dt>Subtotal</dt><dd>$<span id="subtotal">0.00</span></dd></div>
+      <div><dt>Discount</dt><dd>-$<span id="discount">0.00</span></dd></div>
+      <div><dt>Shipping</dt><dd>$<span id="shipping">0.00</span></dd></div>
+      <div class="grand"><dt>Total</dt><dd>$<span id="cart-total">0.00</span></dd></div>
+    </dl>
+    <button id="checkout-btn" class="btn primary block" disabled>Checkout</button>
   </aside>
 
-  <section id="checkout" class="checkout hidden" aria-label="Checkout">
-    <h2>Checkout</h2>
-    <form id="checkout-form" novalidate>
-      <label>Full name <input type="text" id="full-name" name="fullName" autocomplete="name" placeholder="Jane Doe" /></label>
-      <label>Email <input type="email" id="email" name="email" autocomplete="email" placeholder="jane@example.com" /></label>
-      <label>Address <input type="text" id="address" name="address" autocomplete="street-address" placeholder="221B Baker Street" /></label>
-      <label>Card number <input type="text" id="card" name="card" autocomplete="cc-number" placeholder="4111 1111 1111 1111" /></label>
-      <p class="error" id="form-error" role="alert"></p>
-      <button type="submit" id="place-order" class="btn primary">Place order</button>
-    </form>
-  </section>
+  <div id="quickview" class="modal hidden" role="dialog" aria-modal="true" aria-label="Product quick view">
+    <button class="icon-btn modal-close" id="qv-close" aria-label="Close quick view">✕</button>
+    <div class="qv-emoji" id="qv-emoji"></div>
+    <h3 id="qv-title">Product</h3>
+    <p class="muted" id="qv-desc"></p>
+    <p class="price big" id="qv-price"></p>
+    <div class="qty-row">
+      <button class="qty-btn" id="qv-minus" aria-label="Decrease quantity">−</button>
+      <span id="qv-qty">1</span>
+      <button class="qty-btn" id="qv-plus" aria-label="Increase quantity">+</button>
+    </div>
+    <button class="btn primary block" id="qv-add">Add to cart</button>
+    <a class="btn secondary block" id="qv-details" href="#/">View details</a>
+  </div>
 
-  <section id="confirmation" class="confirmation hidden" aria-label="Order confirmation">
-    <h2 id="confirm-title">Thank you for your order!</h2>
-    <p>Order number: <strong id="order-id"></strong></p>
-    <p id="confirm-summary"></p>
-    <button id="new-order" class="btn secondary">Start a new order</button>
-  </section>
+  <div class="toast hidden" id="toast" role="status" aria-live="polite"></div>
 
-  <footer>Demo site for a testing webinar &middot; not a real store</footer>
+  <footer>Demo store for a testing webinar &middot; not a real shop</footer>
 
-  <script src="app.js"></script>
+  <script src="app-core.js"></script>
+  <script src="app-shop.js"></script>
+  <script src="app-account.js"></script>
 </body>
 </html>

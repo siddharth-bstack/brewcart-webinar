@@ -1,10 +1,23 @@
 {
   "product": "Espresso Beans 250g",
-  "productPrice": "12.50",
+  "promoCode": "BREW10",
+  "expectedTotal": "15.75",
   "customer": {
     "fullName": "Jane Doe",
     "email": "jane@example.com",
     "address": "221B Baker Street",
-    "card": "4111111111111111"
+    "city": "London",
+    "card": "4111111111111111",
+    "expiry": "12/30",
+    "cvv": "123"
+  },
+  "account": {
+    "fullName": "Jane Doe",
+    "password": "Secret123!"
+  },
+  "review": {
+    "product": "Burr Grinder",
+    "rating": 5,
+    "text": "Fantastic grinder, very consistent grounds."
   }
 }

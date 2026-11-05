@@ -2,12 +2,12 @@
   "name": "brewcart-automation",
   "version": "1.0.0",
   "private": true,
-  "description": "Checkout workflow automation for the BrewCart webinar demo",
+  "description": "Checkout workflow automation for the BrewCart webinar demo (runs on the GitHub Pages site)",
   "scripts": {
-    "test": "playwright test --retries=0",
-    "test:local": "playwright test --retries=0",
-    "test:bstack": "browserstack-node-sdk playwright test --retries=0",
-    "report": "playwright show-report"
+    "test": "playwright test",
+    "test:v2": "UI=v2 playwright test",
+    "bstack": "browserstack-node-sdk playwright test",
+    "bstack:v2": "UI=v2 browserstack-node-sdk playwright test"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.0",
