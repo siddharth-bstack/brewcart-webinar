@@ -1,0 +1,92 @@
+BREWCART - TESTING WEBINAR DEMO: PROJECT OVERVIEW
+==================================================
+
+A multi-page demo store (hash-routed, no backend) plus Playwright automation for two end-to-end workflows.
+It exists to demo this path: manual testing -> scripted automation -> locator breakage -> self-healing -> AI-generated tests.
+
+Live site:                     https://siddharth-bstack.github.io/brewcart-webinar/website/
+"Locators changed" version:    https://siddharth-bstack.github.io/brewcart-webinar/website/?v=2
+Webinar run-of-show and theory: see WEBINAR_RUNBOOK.txt
+
+REPO LAYOUT
+-----------
+website/      index.html, styles.css, app-core.js (data, routing, ?v=2 renames), app-shop.js, app-account.js
+automation/   Playwright tests, page objects, test data, browserstack.yml
+.github/workflows/pages.yml   publishes the repo to GitHub Pages on push to main
+PROJECT_OVERVIEW.txt          this file
+WEBINAR_RUNBOOK.txt           the full webinar document
+
+WHAT THE SITE DOES (FOR THE MANUAL DEMO)
+----------------------------------------
+Shop            8 products, category chips, search, sort, stock labels
+                (Burr Grinder has 3 left, Travel Tumbler is sold out)
+Product page    details, quantity, reviews (log in to post one, min 10 chars), wishlist, compare
+Compare/Wishlist  compare up to 3 products side by side; move wishlist items to the cart
+Cart drawer     quantities, remove, promo code BREW10 (10% off); shipping is $4.50 unless the discounted subtotal is $50+
+Account         sign up (min 8-char password, matching confirmation, terms), log in/out, order history
+                (data is kept in the browser's local storage only)
+Checkout        3 steps (shipping, payment, review), validation messages, Express shipping +$9.00, terms checkbox
+Support         FAQ accordion, contact form that creates a ticket (message min 15 chars)
+Newsletter      email validation on the home page
+
+Test card: 4111 1111 1111 1111, expiry 12/30, CVV 123 (any 16 digits / MM/YY / 3 digits pass).
+
+THE ?v=2 SWITCH
+---------------
+?v=2 renames 53 element ids (for example #open-cart -> #cart-toggle, #nav-account -> #account-link) and swaps the
+primary button class. Look, text and behaviour stay the same, so a human sees no difference but id-based scripts break.
+
+AUTOMATED WORKFLOWS (automation/tests)
+--------------------------------------
+1. checkout.spec.js  A guest adds Espresso Beans, applies BREW10, completes the 3-step checkout,
+                     asserts the 15.75 total and the confirmation.
+2. account.spec.js   A new customer signs up, reviews the Burr Grinder, wishlists and compares it, buys something
+                     with details prefilled from the account, finds the order in order history, and logs out.
+
+Page objects: pages/StorePage.js, pages/AccountPage.js. Test data: data/checkout.json.
+Locators are deliberately id-based so that ?v=2 breaks them.
+
+RUN
+---
+  cd automation
+  npm install
+  npm test            local Chromium, baseline UI, against the GitHub Pages site
+  npm run test:v2     local Chromium, renamed ids (fails: no healing locally)
+  npm run bstack      BrowserStack Automate, baseline UI
+  npm run bstack:v2   BrowserStack Automate, renamed ids (self-heal demo)
+
+Set BROWSERSTACK_USERNAME and BROWSERSTACK_ACCESS_KEY in your shell first; they are never stored in files.
+SITE_URL optionally points the tests at another server (for example a local "python3 -m http.server 8123"
+run inside website/, then SITE_URL=http://localhost:8123/index.html).
+
+RESULTS OBSERVED SO FAR
+-----------------------
+npm test (local)                                  2 passed
+npm run test:v2 (local, no healing)               2 failed: waiting for #nav-account / #cart-count
+npm run bstack (Automate, Windows 11 / Chrome)    2 passed
+npm run bstack:v2 (Automate)                      2 failed with 60 s timeouts on #nav-account / #open-cart;
+                                                  healing was disabled for the session
+
+WHY SELF-HEALING IS NOT WORKING YET
+-----------------------------------
+The SDK log (automation/log/sdk-cli.log) shows, on every run:
+  Authentication Failed. Disabling Healing for this session.
+  error invoking callback for eventName onStart: TCG auth failure
+
+BrowserStack's Self-Heal documentation lists two prerequisites
+(https://www.browserstack.com/docs/automate/selenium/self-healing):
+ 1. BrowserStack AI must be enabled on the account. An Owner or Admin does: profile icon -> Settings ->
+    BrowserStack AI -> tick the checkbox -> Save preferences
+    (https://www.browserstack.com/docs/iaam/settings-and-permissions/activate-browserstack-ai).
+    It applies to all users on the account, and some features lag after opting in.
+ 2. The Automate Pro plan. The account's plan reads "Automate - Desktop & Mobile Pro", so this looks met.
+
+Also: AI Self-Heal does not work in Chrome incognito mode (not used here), and selfHeal: true is already set
+in automation/browserstack.yml. The AI-preferences opt-in is the most likely missing piece, but this is inferred
+from the docs, not confirmed against the account.
+
+After enabling, verify with:
+  cd automation
+  npm run bstack:v2
+  grep -E "Authentication Failed|TCG auth failure" log/sdk-cli.log     (no new lines after the run = auth worked)
+Then open the session on the Automate dashboard and check that the healed steps are listed.

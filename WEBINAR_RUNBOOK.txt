@@ -1,0 +1,247 @@
+WEBINAR RUNBOOK - FROM MANUAL TESTING TO SELF-HEALING AND AI-GENERATED TESTS (30 MINUTES)
+=========================================================================================
+
+PART 1 of 3: PLAN, THEORY AND DEMO SCRIPT, MINUTES 0-17
+(Parts 2 and 3 - self-heal segment, Test Companion segment, prep checklist, backups, dos/don'ts - follow below.)
+
+0. THE STORY IN ONE LINE
+------------------------
+"Testing started manual and human; we automated the repetitive parts; automation then became its own maintenance
+burden because locators change; self-healing absorbs that churn; and AI agents remove the scripting and exploration
+effort at the front."
+
+Site used for everything:
+  Baseline:  https://siddharth-bstack.github.io/brewcart-webinar/website/
+  Changed:   https://siddharth-bstack.github.io/brewcart-webinar/website/?v=2     (same UI, renamed ids)
+
+1. AGENDA AND TIMING (30 MIN, 5 MIN OF SLACK INSIDE)
+---------------------------------------------------
+ 00:00-02:00  Hook + agenda                                  (slides/talk)
+ 02:00-06:00  Theory: how testing began, manual testing      (slides/talk)
+ 06:00-11:00  LIVE manual checkout on the site, record results
+ 11:00-13:00  Pain points of manual repetition               (talk, back to the checkout)
+ 13:00-17:00  Ready-made script running on BrowserStack Automate (baseline passes)
+ 17:00-21:00  Pain points of automation: locators change; run on ?v=2; show the failure
+ 21:00-25:00  Self-healing on Automate for the same site     (see Part 2)
+ 25:00-29:00  Test Companion generates scripts + runs them    (see Part 2)
+ 29:00-30:00  Recap, takeaways, Q&A pointer
+
+If you run long: cut the Support/Compare tour, shorten theory to 3 minutes, and keep the two failures/greens
+(baseline green, v2 red, v2 healed) because they are the heart of the story.
+
+2. THEORY TO SAY (MINUTES 2-6)
+-------------------------------
+How testing began
+ - Early software: developers checked their own work; "testing" meant running the program and looking.
+ - Testing became a separate discipline: testers write cases, run them by hand, record results, file defects.
+ - Manual testing is still the best tool for exploration, usability, "does this feel right", and anything new.
+
+What good manual testing looks like (say these four things)
+ 1. A test case: title, preconditions, numbered steps, expected result.
+ 2. Test data written down (which account, which card, which promo code).
+ 3. Results recorded per run: pass / fail / blocked, plus evidence (screenshot, order number).
+ 4. Defects filed with steps to reproduce, expected vs actual, environment.
+
+Why it stops scaling
+ - Same flows every release: checkout, login, search. Humans get slower, bored and inconsistent.
+ - Multiple browsers x devices x releases multiplies the work.
+ - Regressions slip through when time is short.
+ -> Automation takes over the repetitive, stable, high-value flows. Humans keep exploration.
+
+3. LIVE MANUAL DEMO SCRIPT: CHECKOUT (MINUTES 6-11)
+----------------------------------------------------
+Open the BASELINE URL. Keep a notes sheet visible (see section 9, results sheet).
+
+Test case TC-01: Guest completes checkout with a promo code
+ Preconditions: not logged in, empty cart. Data: product Espresso Beans 250g, promo BREW10, card 4111 1111 1111 1111, exp 12/30, CVV 123.
+ Step 1  Search or scroll to "Espresso Beans 250g"; click "Add to cart".
+         Expected: toast "Added Espresso Beans 250g to cart"; header cart badge shows 1.
+ Step 2  Click the cart button. Expected: drawer opens, line shows $12.50 each.
+ Step 3  Type BREW10, click Apply. Expected: "Code BREW10 applied: 10% off"; Total 15.75 (12.50 - 1.25 + 4.50 shipping).
+ Step 4  Click Checkout. Expected: Checkout page, step 1 "Shipping" active.
+ Step 5  Click Continue with empty fields. Expected: "Please fill in all shipping fields."
+ Step 6  Fill name, email (try "bad" first -> "Please enter a valid email."), address, city. Continue.
+ Step 7  Payment: enter a short card number "123" -> "Card number must be 16 digits."; then 4111111111111111, 12/30, 123. Continue.
+ Step 8  Review: click Place order without the terms box -> "Please accept the terms and conditions."; tick it, Place order.
+         Expected: "Thank you for your order!", order number BC-xxxxxx, summary "1 item(s), total $15.75".
+ Record: the order number in the results sheet. That is your evidence.
+
+While doing it, narrate the cost: "That was about 2-3 minutes for one flow, one browser, one data set."
+
+PART 1 ENDS. CONTINUED BELOW IN PART 2.
+
+PART 2 of 3: AUTOMATION, LOCATOR PAIN, SELF-HEALING, TEST COMPANION, MINUTES 11-30
+==================================================================================
+
+4. PAIN POINTS OF MANUAL REPETITION (MINUTES 11-13)
+---------------------------------------------------
+Say, looking at your notes sheet:
+ - One flow, one browser, one dataset took minutes. A release has dozens of flows across browsers.
+ - Results live in a sheet; evidence is a number you typed. Nothing is replayable.
+ - The second time you do it, you skip steps. The tenth time, you stop looking.
+Transition: "So we script it."
+
+5. THE READY-MADE SCRIPT ON AUTOMATE (MINUTES 13-17)
+----------------------------------------------------
+Have two terminals open already in /Users/siddharthsukhmoychakravarty/Desktop/Webinar/automation, with
+BROWSERSTACK_USERNAME and BROWSERSTACK_ACCESS_KEY exported.
+
+Show the code first (30-40 seconds, do not read it all):
+ - tests/checkout.spec.js        the same TC-01 steps you just did by hand, as ~15 lines of assertions
+ - tests/account.spec.js         workflow 2: sign up, review, wishlist, compare, buy, order history, logout
+ - pages/StorePage.js            page object; point at ONE line:  this.openCart = page.locator('#open-cart');
+                                 "This is a locator. It is how the script finds the cart button. Remember it."
+ - package.json                  four scripts, no flags
+
+Run:
+  npm run bstack
+Expected (observed in rehearsal): "2 passed" - account.spec.js and checkout.spec.js on Windows 11 / Chrome.
+While it runs (about 35 s), open the Automate dashboard build and show the video and the text logs.
+Talking point: "Same flow, but now it runs in the cloud, on a real browser, with a video, repeatable, parallelizable."
+
+6. WHEN LOCATORS CHANGE: THE AUTOMATION PAIN POINT (MINUTES 17-21)
+-------------------------------------------------------------------
+Open the CHANGED URL (?v=2) in a normal browser tab next to the baseline. Say: "Spot the difference."
+There is none visible except the small badge "UI version 2 (locators changed)". Same look, same text.
+Under the hood: ids were renamed, e.g. #open-cart -> #cart-toggle, #nav-account -> #account-link.
+Real-world causes: a redesign, a framework upgrade, a generated-class change, a developer "cleaning up" ids.
+
+Run the same script against ?v=2 WITHOUT healing (local, so it fails fast and clearly):
+  npm run test:v2
+Observed in rehearsal: "2 failed", waiting for locator('#nav-account') and locator('#cart-count').
+Talking point: "Nothing is broken for a user. The product works. The test is red. This is a false failure,
+and somebody now spends an hour finding out that it was only a renamed id."
+Quantify it: dozens of tests x frequent UI changes = maintenance becomes a job of its own.
+
+7. SELF-HEALING ON AUTOMATE (MINUTES 21-25)   *** THE KEY SEGMENT ***
+-----------------------------------------------------------------
+Concept (20 seconds): Self-Heal detects when a locator no longer matches, finds the intended element using
+historical context and AI signals (text, role, position, attributes), continues the test, and records what it
+healed so you can update the script.
+
+Run (cloud, ?v=2):
+  npm run bstack:v2
+Expected IF self-heal is enabled on the account: both tests pass, and the session shows healed locators.
+Show: Automate dashboard -> the build -> the session -> the Self-Heal information (healed steps and the new locators).
+Then show the follow-up: apply healed locators back to the script (via MCP or a generated PR for SDK users) so
+the suite is fixed permanently, not just patched at runtime.
+
+!!! PREREQUISITE - DO THIS BEFORE THE WEBINAR !!!
+In rehearsal on this account, healing was DISABLED for the session. The SDK log said:
+  Authentication Failed. Disabling Healing for this session.
+  error invoking callback for eventName onStart: TCG auth failure
+so the ?v=2 run failed with timeouts instead of healing.
+Fix (Owner/Admin of the account): profile icon -> Settings -> BrowserStack AI -> tick the checkbox -> Save preferences.
+(https://www.browserstack.com/docs/iaam/settings-and-permissions/activate-browserstack-ai)
+Self-Heal also needs the Automate Pro plan (this account shows "Automate - Desktop & Mobile Pro").
+Wait a few minutes after enabling (docs: some features lag), then check:
+  cd automation && npm run bstack:v2
+  grep -E "Authentication Failed|TCG auth failure" log/sdk-cli.log
+No new lines after that run = healing authenticated.
+THIS HAS NOT BEEN SEEN WORKING YET. Rehearse it end to end. If it is still red on the day, use Backup B (section 12).
+
+8. TEST COMPANION: NO SCRIPTS, NO EXPLORATION (MINUTES 25-29)
+-------------------------------------------------------------
+Message: "Healing reduces the cost of maintaining scripts. Test Companion removes the cost of writing them."
+Live, in the IDE, in an empty or a fresh folder (so it is clear nothing is pre-written):
+ 1. Ask: "Explore https://siddharth-bstack.github.io/brewcart-webinar/website/ and generate test cases for the
+    main user journeys." -> it explores the site and proposes written test cases (checkout, sign up, reviews, etc.).
+ 2. Ask: "Write Playwright tests for the guest checkout workflow and run them on BrowserStack." -> it generates the
+    script, runs it, shows the session.
+ 3. Point out what you did NOT do: no manual exploration, no hand-written locators, no hand-written assertions.
+Expectation management: generated tests are a strong starting point; review them like a colleague's code.
+Do not promise it replaces human judgement. It removes the blank-page and boilerplate cost.
+Prepare one pre-generated test case list and one pre-generated script (section 10) in case the live run is slow.
+
+PART 2 ENDS. CONTINUED BELOW IN PART 3.
+
+WEBINAR RUNBOOK - PART 3 of 3: ARTIFACTS, PREP CHECKLIST, BACKUPS, DOS AND DON'TS, Q AND A
+===========================================================================================
+(Continues WEBINAR_RUNBOOK.txt, which holds parts 1 and 2: plan, theory, manual demo, automation, self-heal, Test Companion.)
+
+9. MANUAL RESULTS SHEET (SHOW ON SCREEN DURING THE MANUAL DEMO, MINUTES 6-11)
+-----------------------------------------------------------------------------
+Keep it in a spreadsheet or a plain doc. One row per run.
+ TC id | Title                                   | Build/URL | Tester | Date  | Result | Evidence        | Notes
+ TC-01 | Guest checkout with BREW10 promo        | baseline  | (you)  | today | PASS   | order BC-xxxxxx | about 3 min by hand
+ TC-02 | Sign up, review, wishlist, compare, buy | baseline  | (you)  | today | not run live: "this is what we automate next"
+
+10. ARTIFACTS TO HAVE READY BEFORE THE WEBINAR
+----------------------------------------------
+ - Slides: agenda, "how testing began" timeline, manual test case anatomy, cost of repetition, locator-change diagram,
+   self-heal flow, Test Companion flow, recap.
+ - These runbook files, printed or on a second screen.
+ - Results sheet (section 9) open in its own window.
+ - Browser tabs pre-opened in this order: (1) baseline site, (2) ?v=2 site, (3) Automate dashboard, (4) the IDE.
+ - Terminal at the automation folder of this repo, with BrowserStack credentials exported in the shell.
+ - Recordings or screenshots (see backups) of: baseline green build, ?v=2 red build, healed build, Test Companion run.
+ - A pre-generated Test Companion test case list and Playwright script saved in a separate folder.
+ - Links list: both site URLs, the Automate build links from your rehearsal runs, and the BrowserStack self-heal doc
+   https://www.browserstack.com/docs/automate/selenium/self-healing
+
+11. PRE-FLIGHT CHECKLIST (RUN 24 HOURS BEFORE, AGAIN 60 MINUTES BEFORE, AGAIN 10 MINUTES BEFORE)
+------------------------------------------------------------------------------------------------
+ [ ] Site is up: curl -sI https://siddharth-bstack.github.io/brewcart-webinar/website/ | head -1 (expect HTTP/2 200)
+ [ ] ?v=2 loads and shows the badge "UI version 2 (locators changed)"
+ [ ] Latest code is on main: git status -sb and git log --oneline -1 in the repo root
+ [ ] Dependencies installed: npm install inside automation
+ [ ] Credentials present, without printing them: [ -n "$BROWSERSTACK_USERNAME" ] && [ -n "$BROWSERSTACK_ACCESS_KEY" ] && echo set
+ [ ] Baseline on Automate is green: npm run bstack (expect 2 passed)
+ [ ] ?v=2 is red locally, which proves the break: npm run test:v2 (expect 2 failed)
+ [ ] BrowserStack AI is enabled (profile icon, Settings, BrowserStack AI), then ?v=2 on Automate heals: npm run bstack:v2
+ [ ] No new "Authentication Failed" line appears after that run: grep -E "Authentication Failed|TCG auth failure" log/sdk-cli.log
+ [ ] Parallel sessions are free on the account (check that no other team is saturating it)
+ [ ] Test Companion is signed in, up to date, project opened, and the explore prompt has been dry-run once
+ [ ] Notifications off, screen at 1080p, browser zoom 110 to 125 percent, large terminal font, bookmarks bar clean
+ [ ] Clean browser state for the manual demo: open the site in a fresh or incognito window, because accounts and orders
+     are saved in the browser. Use "Clear site data" between rehearsals.
+ [ ] Network: wired, or a second connection (phone hotspot) ready
+
+12. BACKUPS (WHAT TO DO WHEN SOMETHING BREAKS LIVE)
+---------------------------------------------------
+ A. GitHub Pages is down or slow: run the site locally with python3 -m http.server 8123 inside the website folder, and point
+    the local tests at it with SITE_URL=http://localhost:8123/index.html npm test. This works for local runs only, because
+    BrowserStack cloud cannot reach localhost without a tunnel.
+ B. Self-heal is still red on the day: show the recorded healed run (recording or screenshots from rehearsal) and the doc page,
+    and say you are showing a recording and why. Do not improvise a fix live.
+ C. Automate is slow or queues: show the previous build in the dashboard (video and logs) while the new one starts.
+ D. Credentials or auth errors: show the pre-recorded run, then fix after the session.
+ E. Test Companion is slow: show the pre-generated test cases and script, and run the script with npm run bstack.
+ F. A flaky assertion: re-run once. If it repeats, switch to the recording. Never edit a test live in front of the audience.
+ G. Old accounts or orders appear on the site: clear site data, or open a fresh window.
+ H. Total network loss: slides and recorded demos only. You can still deliver the story.
+
+13. DOS AND DON'TS
+------------------
+DO
+ - Rehearse the whole 30 minutes twice with a timer, including the ?v=2 self-heal run.
+ - Keep one idea per segment and end each with a one-sentence takeaway.
+ - Say what you are about to run before you press enter, and what you expect.
+ - Show failures honestly. The red ?v=2 run is the story, not an embarrassment.
+ - Keep attention on outcomes: false failures, time saved, stability.
+DON'T
+ - Don't claim self-healing is magic. It recovers locator drift. It does not fix wrong assertions or real bugs.
+ - Don't claim generated tests need no review.
+ - Don't show your BrowserStack access key. Keep it in environment variables only.
+ - Don't debug a failure live for more than 30 seconds. Switch to the backup.
+ - Don't leave stale instructions on screen. The commands in sections 5 to 7 and section 15 are the current ones.
+ - Don't run the whole manual flow twice live. The second time adds nothing.
+
+14. QUICK ANSWERS FOR Q AND A
+-----------------------------
+ - Does self-heal hide real bugs? It only substitutes a locator when the intended element is still there, and it records every
+   heal for review. Real behaviour and assertion failures still fail.
+ - Do we still need manual testing? Yes: exploration, usability and new features. Automation takes the repetitive regression.
+ - Do I have to rewrite my suite? No. Self-heal is a capability setting (selfHeal: true) plus the account-level BrowserStack AI setting.
+ - Is the generated code ours? Yes. It is plain Playwright you can edit and commit.
+ - Which frameworks? This demo uses Playwright (JavaScript). The Self-Heal docs also cover Selenium and Cypress.
+
+15. COMMAND CHEAT SHEET (RUN FROM THE AUTOMATION FOLDER)
+-------------------------------------------------------
+  npm test              local, baseline UI, GitHub Pages site
+  npm run test:v2       local, renamed ids (expected: red)
+  npm run bstack        Automate, baseline (expected: 2 passed)
+  npm run bstack:v2     Automate, renamed ids (expected: healed, once BrowserStack AI is enabled)
+  grep -E "Authentication Failed|TCG auth failure" log/sdk-cli.log      did healing authenticate?
+
+END OF RUNBOOK
