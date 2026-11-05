@@ -1,0 +1,179 @@
+BREWCART - MANUAL TEST CASES (FOR THE LIVE MANUAL-TESTING DEMO)
+================================================================
+
+Site under test (baseline): https://siddharth-bstack.github.io/brewcart-webinar/website/
+Use a fresh or incognito window first. Accounts and orders are saved in the browser, so old data can change results.
+Test card: 4111 1111 1111 1111, expiry 12/30, CVV 123.
+
+HOW TO SHOW THESE ON SCREEN
+ - Keep this file open next to the browser. Read the step, do it, then read the expected result and compare.
+ - Fill the RESULT column as you go (PASS / FAIL, plus evidence such as the order number).
+ - Expected values below come from the site's own code and were checked in the browser during rehearsal.
+
+PRODUCT DATA YOU WILL USE
+ Espresso Beans 250g   $12.50   24 in stock      Ceramic Mug          $9.00   40 in stock
+ Ethiopia Yirgacheffe  $15.00   12 in stock      Travel Tumbler       $22.00  OUT OF STOCK
+ Cold Brew Kit         $24.00    7 in stock      Burr Grinder         $49.00  only 3 left
+ Pour-over Dripper     $18.75   30 in stock      Decaf House Blend    $11.00  18 in stock
+Pricing rules: promo BREW10 = 10% off. Shipping is $4.50, free once the discounted subtotal reaches $50. Express shipping adds $9.00.
+
+
+=====================================================================
+TC-01  GUEST CHECKOUT WITH A PROMO CODE          (the flow we automate in workflow 1)
+=====================================================================
+Priority: High      Type: End-to-end      Preconditions: not logged in, empty cart
+Test data: product Espresso Beans 250g, promo BREW10, the test card above
+
+ #  Step                                                     Expected result
+ 1  Open the site.                                           Home page loads. Header shows Cart 0.
+ 2  On "Espresso Beans 250g" click "Add to cart".            Toast "Added Espresso Beans 250g to cart". Cart badge shows 1.
+ 3  Click the Cart button in the header.                     Cart drawer opens. Line shows $12.50 each.
+ 4  Type BREW10 in the promo field and click Apply.          Message "Code BREW10 applied: 10% off".
+ 5  Read the totals.                                         Subtotal 12.50, Discount -1.25, Shipping 4.50, Total 15.75.
+ 6  Click Checkout.                                          Checkout page, step "1. Shipping" highlighted.
+ 7  Click Continue with every field empty.                   Error "Please fill in all shipping fields."
+ 8  Enter name Jane Doe, email "bad", address, city; Continue. Error "Please enter a valid email."
+ 9  Fix the email to jane@example.com; click Continue.       Step "2. Payment" is highlighted.
+10  Enter card number 123, other fields valid; Continue.     Error "Card number must be 16 digits."
+11  Enter 4111111111111111; Continue.                        Step "3. Review" shows the item and Total 15.75.
+12  Click Place order WITHOUT ticking the terms box.         Error "Please accept the terms and conditions."
+13  Tick the terms box; click Place order.                   "Thank you for your order!", an order number BC-xxxxxx,
+                                                              and a summary with total $15.75 and jane@example.com.
+Evidence to record: the order number (BC-xxxxxx).        RESULT: [ ] PASS  [ ] FAIL      Notes: ___________
+
+
+=====================================================================
+TC-02  NEW CUSTOMER: SIGN UP, REVIEW, WISHLIST, COMPARE, BUY, ORDER HISTORY   (workflow 2)
+=====================================================================
+Priority: High      Type: End-to-end      Preconditions: fresh browser window, no account for the email below
+Test data: Jane Doe, jane@example.com, password Secret123!, product Burr Grinder
+
+ #  Step                                                     Expected result
+ 1  Click "Sign in" in the header, then the "Sign up" tab.   Sign-up form shows.
+ 2  Click "Create account" with all fields empty.            Error "Please fill in all fields."
+ 3  Fill name, email; password "short"; confirm "short".     Error "Password must be at least 8 characters."
+ 4  Use Secret123! but confirm a different value.            Error "Passwords do not match."
+ 5  Make both match; leave the terms box unticked.           Error "Please accept the terms."
+ 6  Tick the terms box; click "Create account".              Toast "Welcome to BrewCart, Jane!". Account page shows "Hi, Jane Doe"
+                                                              and jane@example.com. Header shows "Jane".
+ 7  Click Shop, then the "Burr Grinder" link.                Product page: Burr Grinder, $49.00, "Only 3 left".
+ 8  Submit a review of "Great" (under 10 characters).        Error "Review must be at least 10 characters."
+ 9  Write "Fantastic grinder, very consistent grounds." with 5 stars; Submit.
+                                                              Toast "Thanks for your review!". The review appears in the list.
+10  Click "Wishlist".                                        Toast "Saved to wishlist". Wishlist badge shows 1.
+11  Click "Compare".                                         Toast "Added to comparison". Compare badge shows 1.
+12  Click Shop; add "Espresso Beans 250g"; open cart; Checkout.
+                                                              Name and email are prefilled (Jane Doe, jane@example.com).
+13  Enter address and city; Continue; enter the test card; Continue; tick terms; Place order.
+                                                              Confirmation with an order number BC-xxxxxx.
+14  Click "View my orders".                                  Order history has 1 row with that order number and status "Processing".
+15  Click "Log out".                                         Toast "You have been logged out". Header shows "Sign in".
+Evidence to record: the order number.                    RESULT: [ ] PASS  [ ] FAIL      Notes: ___________
+
+
+=====================================================================
+TC-03  CART RULES: QUANTITY, STOCK LIMIT, FREE SHIPPING                     (good for a quick extra demo)
+=====================================================================
+Priority: Medium    Type: Functional      Preconditions: empty cart
+
+ #  Step                                                     Expected result
+ 1  Add "Burr Grinder" once.                                 Cart badge 1. Shipping 4.50 in the drawer (subtotal 49.00 is under 50).
+ 2  Click + on the Burr Grinder line.                        Quantity 2, subtotal 98.00, shipping 0.00 (free over $50).
+ 3  Click + again to reach 3, then + once more.              Toast "Only 3 of Burr Grinder in stock". Quantity stays 3.
+ 4  Click the Travel Tumbler card.                           Its button reads "Sold out" and is disabled; label "Out of stock".
+ 5  Click Remove on the Burr Grinder line.                   Cart empties; "Your cart is empty. Add something tasty!" shows.
+                                                          RESULT: [ ] PASS  [ ] FAIL
+
+
+=====================================================================
+TC-04  PROMO CODE VALIDATION
+=====================================================================
+Priority: Medium    Type: Negative / boundary    Preconditions: one item in the cart, drawer open
+
+ #  Step                                                     Expected result
+ 1  Click Apply with the field empty.                        Message "Enter a promo code".
+ 2  Enter WRONG; Apply.                                      Message "Invalid promo code"; no discount.
+ 3  Enter brew10 (lowercase); Apply.                         Accepted: "Code BREW10 applied: 10% off" (the code is case-insensitive).
+                                                          RESULT: [ ] PASS  [ ] FAIL
+
+
+=====================================================================
+TC-05  LOGIN AND LOGOUT
+=====================================================================
+Priority: Medium    Type: Functional      Preconditions: the account from TC-02 exists, logged out
+
+ #  Step                                                     Expected result
+ 1  Click "Sign in"; click "Log in" with empty fields.       Error "Enter your email and password."
+ 2  Enter jane@example.com and a wrong password.             Error "Invalid email or password."
+ 3  Enter the correct password Secret123!.                   Toast "Logged in as Jane Doe". Account page shown.
+ 4  Try to sign up again with the same email.                Error "An account with this email already exists."
+                                                          RESULT: [ ] PASS  [ ] FAIL
+
+
+=====================================================================
+TC-06  SEARCH, FILTER AND SORT
+=====================================================================
+Priority: Medium    Type: Functional
+
+ #  Step                                                     Expected result
+ 1  Click the "Gear" chip.                                   3 products: Cold Brew Kit, Pour-over Dripper, Burr Grinder.
+ 2  Click "All"; type "tumbler" in the search box.           1 product: Travel Tumbler.
+ 3  Type "zzzz".                                             "No products match your search. Try another keyword."
+ 4  Clear the search; sort by "Price: high to low".          Burr Grinder ($49.00) is first.
+                                                          RESULT: [ ] PASS  [ ] FAIL
+
+
+=====================================================================
+TC-07  COMPARE AND WISHLIST
+=====================================================================
+Priority: Low       Type: Functional
+
+ #  Step                                                     Expected result
+ 1  Open three different product pages; press Compare on each. Compare badge reaches 3.
+ 2  Open a fourth product; press Compare.                    Toast "You can compare up to 3 products". Badge stays 3.
+ 3  Open the Compare page.                                   Table with price, rating, category, roast, origin and availability for each.
+ 4  Open Wishlist; click "Move to cart" on a saved item.     Item leaves the wishlist and appears in the cart.
+                                                          RESULT: [ ] PASS  [ ] FAIL
+
+
+=====================================================================
+TC-08  SUPPORT: FAQ AND CONTACT FORM
+=====================================================================
+Priority: Low       Type: Functional
+
+ #  Step                                                     Expected result
+ 1  Open Support; click the first FAQ question.              The answer opens: standard shipping 3-5 days, Express 1-2 days.
+ 2  Click "Send message" with the form empty.                Error "Please complete all fields."
+ 3  Fill name, email "bad", topic, message; Send.            Error "Please enter a valid email."
+ 4  Use a valid email and a message under 15 characters.     Error "Message must be at least 15 characters."
+ 5  Use a message of 15 or more characters; Send.            Success message with a ticket number TKT-xxxx and your email.
+                                                          RESULT: [ ] PASS  [ ] FAIL
+
+
+=====================================================================
+TC-09  NEWSLETTER SIGNUP
+=====================================================================
+Priority: Low       Type: Functional
+
+ #  Step                                                     Expected result
+ 1  On the home page, enter "nope" in the newsletter box; Subscribe.   "Please enter a valid email address."
+ 2  Enter you@example.com; Subscribe.                        "Subscribed! Use code BREW10 for 10% off."
+                                                          RESULT: [ ] PASS  [ ] FAIL
+
+
+=====================================================================
+RESULTS SHEET (COPY INTO A SPREADSHEET)
+=====================================================================
+ TC id | Title                              | URL      | Tester | Date | Result | Evidence        | Minutes by hand
+ TC-01 | Guest checkout with promo          | baseline |        |      |        | order BC-       |
+ TC-02 | Sign up, review, buy, order history| baseline |        |      |        | order BC-       |
+ TC-03 | Cart rules                         | baseline |        |      |        |                 |
+ TC-04 | Promo validation                   | baseline |        |      |        |                 |
+ TC-05 | Login / logout                     | baseline |        |      |        |                 |
+ TC-06 | Search, filter, sort               | baseline |        |      |        |                 |
+ TC-07 | Compare and wishlist               | baseline |        |      |        |                 |
+ TC-08 | Support                            | baseline |        |      |        |                 |
+ TC-09 | Newsletter                         | baseline |        |      |        |                 |
+
+SUGGESTED LIVE PICK FOR THE 5-MINUTE MANUAL SEGMENT: run TC-01 fully (it is also automated as workflow 1), show TC-02 as
+written but do not run it, and say "these nine cases took me about <your timing> minutes by hand: that is the cost we automate."
