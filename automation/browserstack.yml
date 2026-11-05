@@ -1,0 +1,30 @@
+# BrowserStack Automate config. Credentials are read from the environment
+# (BROWSERSTACK_USERNAME / BROWSERSTACK_ACCESS_KEY), never stored here.
+userName: ${BROWSERSTACK_USERNAME}
+accessKey: ${BROWSERSTACK_ACCESS_KEY}
+
+projectName: BrewCart Webinar
+buildName: brewcart-checkout
+buildIdentifier: '#${BUILD_NUMBER}'
+
+platforms:
+  - os: Windows
+    osVersion: 11
+    browserName: chrome
+    browserVersion: latest
+
+parallelsPerPlatform: 1
+
+# true = reach localhost:8123 from the cloud. Set to false once BASE_URL is the public GitHub Pages URL.
+browserstackLocal: true
+
+# AI self-healing: recovers from changed locators at runtime.
+selfHeal: true
+
+framework: playwright
+source: playwright:webinar-brewcart:sample-sdk:v1.0
+
+debug: true
+networkLogs: true
+consoleLogs: errors
+testObservability: true

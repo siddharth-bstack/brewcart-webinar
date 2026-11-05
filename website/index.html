@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BrewCart - Demo Store</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand" id="brand">☕ BrewCart</div>
+    <nav>
+      <a href="#products" class="nav-link">Shop</a>
+      <a href="#" id="open-cart" class="nav-link cart-link">Cart (<span id="cart-count">0</span>)</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <h1>Fresh coffee, delivered fast.</h1>
+    <p>A demo store built for the testing webinar. Add items, checkout, repeat.</p>
+    <span class="version-badge" id="version-badge"></span>
+  </section>
+
+  <main>
+    <section id="products" class="grid" aria-label="Products"></section>
+  </main>
+
+  <aside id="cart-panel" class="cart-panel hidden" aria-label="Shopping cart">
+    <h2>Your Cart</h2>
+    <ul id="cart-items"></ul>
+    <p class="total">Total: $<span id="cart-total">0.00</span></p>
+    <div class="cart-actions">
+      <button id="close-cart" class="btn secondary">Keep shopping</button>
+      <button id="checkout-btn" class="btn primary">Checkout</button>
+    </div>
+  </aside>
+
+  <section id="checkout" class="checkout hidden" aria-label="Checkout">
+    <h2>Checkout</h2>
+    <form id="checkout-form" novalidate>
+      <label>Full name <input type="text" id="full-name" name="fullName" autocomplete="name" placeholder="Jane Doe" /></label>
+      <label>Email <input type="email" id="email" name="email" autocomplete="email" placeholder="jane@example.com" /></label>
+      <label>Address <input type="text" id="address" name="address" autocomplete="street-address" placeholder="221B Baker Street" /></label>
+      <label>Card number <input type="text" id="card" name="card" autocomplete="cc-number" placeholder="4111 1111 1111 1111" /></label>
+      <p class="error" id="form-error" role="alert"></p>
+      <button type="submit" id="place-order" class="btn primary">Place order</button>
+    </form>
+  </section>
+
+  <section id="confirmation" class="confirmation hidden" aria-label="Order confirmation">
+    <h2 id="confirm-title">Thank you for your order!</h2>
+    <p>Order number: <strong id="order-id"></strong></p>
+    <p id="confirm-summary"></p>
+    <button id="new-order" class="btn secondary">Start a new order</button>
+  </section>
+
+  <footer>Demo site for a testing webinar &middot; not a real store</footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

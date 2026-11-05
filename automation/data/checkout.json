@@ -1,0 +1,10 @@
+{
+  "product": "Espresso Beans 250g",
+  "productPrice": "12.50",
+  "customer": {
+    "fullName": "Jane Doe",
+    "email": "jane@example.com",
+    "address": "221B Baker Street",
+    "card": "4111111111111111"
+  }
+}
